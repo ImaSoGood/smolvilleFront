@@ -1,0 +1,834 @@
+/* src/assets/style.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 80px;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* === БЕЙДЖ УЧАСТНИКОВ === */
+.attendees-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 255, 204, 0.9);
+  color: #000;
+  padding: 6px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* === ЛОГОТИП === */
+.logo {
+  text-align: center;
+  margin: 16px 0 20px;
+}
+
+.logo img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* === НАВИГАЦИЯ С ИКОНКАМИ === */
+.nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding: 0 4px;
+  scrollbar-width: none;
+  justify-content: center;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nav button {
+  padding: 12px;
+  background: #1a1a1a;
+  border: none;
+  color: #888;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  min-width: 60px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.nav button.active {
+  background: #fff;
+  color: #000;
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-text {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* === ВКЛАДКИ === */
+.tabs {
+  display: flex;
+  background: #1a1a1a;
+  border-radius: 25px;
+  padding: 4px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  padding: 11px 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: #888;
+  transition: color 0.3s ease;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: #000;
+  font-weight: 600;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 8px);
+  height: calc(100% - 8px);
+  background: #fff;
+  border-radius: 21px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* === КАРТОЧКИ СОБЫТИЙ === */
+.event-card {
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+}
+
+.event-img-wrapper {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.event-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.event-card:hover .event-img {
+  transform: scale(1.03);
+}
+
+.gradient-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.event-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  z-index: 2;
+}
+
+.event-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.event-tag {
+  display: inline-block;
+  background: #e91e63;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.event-date {
+  font-size: 13px;
+  color: #ccc;
+  font-weight: 500;
+}
+
+/* === КАРТОЧКИ ГОЛОСОВАНИЙ === */
+.voting-card {
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  border-left: 4px solid #00ffcc;
+  cursor: pointer;
+}
+
+.voting-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 255, 204, 0.2);
+  color: #00ffcc;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.voting-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.voting-description {
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.voting-status {
+  color: #00ffcc;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.voting-card.completed {
+  border-left-color: #666;
+  opacity: 0.7;
+}
+
+.voting-card.completed .voting-badge {
+  background: rgba(102, 102, 102, 0.2);
+  color: #888;
+}
+
+.voting-card.completed .voting-status {
+  color: #888;
+}
+
+/* === КАРТОЧКИ РЕКЛАМЫ === */
+.ad-card {
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  border-left: 4px solid #ff00cc;
+  cursor: pointer;
+}
+
+.ad-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 0, 204, 0.2);
+  color: #ff00cc;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* === РАЗДЕЛЫ (События, Голосования, Маркет, Аккаунт) === */
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* === ЗАГЛУШКИ === */
+.placeholder-section {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.placeholder-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.placeholder-subtext {
+  font-size: 14px;
+  color: #666;
+}
+
+/* === МОДАЛЬНЫЕ ОКНА === */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.modal-subtitle {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.modal-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-description {
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #fff;
+  color: #000;
+}
+
+.btn-secondary {
+  background: #333;
+  color: #fff;
+}
+
+/* === НИЖНЕЕ МЕНЮ === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000;
+  border-top: 1px solid #222;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0 16px;
+  z-index: 100;
+}
+
+.bottom-nav button {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.3s ease;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.bottom-nav button.active {
+  color: #fff;
+}
+
+.bottom-nav svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+/* === СКЕЛЕТОН-ЗАГРУЗЧИК === */
+.skeleton {
+  background: #2a2a2a;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: loading 1.5s infinite;
+}
+
+.skeleton-card {
+  height: 200px;
+}
+
+@keyframes loading {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* === УТИЛИТЫ === */
+.hidden {
+  display: none !important;
+}
+
+/* === ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ КОМПОНЕНТОВ VUE === */
+
+/* Стили для компонента EventsView */
+.events-section {
+  padding-bottom: 20px;
+}
+
+/* Стили для ошибки сервера */
+.server-error {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.server-error-image {
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  margin: 0 auto 16px;
+  border-radius: 8px;
+}
+
+.server-error h3 {
+  margin-bottom: 8px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.server-error p {
+  color: #888;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Стили для состояний загрузки/ошибки/пусто */
+.loading-container,
+.error-container,
+.empty-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-text,
+.empty-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.empty-text {
+  color: #888;
+}
+
+/* Кнопки */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #fff;
+  color: #000;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.btn-primary:disabled {
+  background: #666;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #333;
+  color: #fff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #444;
+}
+
+.btn-secondary:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Контейнер для кнопок */
+.modal-actions .btn {
+  flex: 1;
+  padding: 12px 20px;
+}
+
+/* Стиль для неактивных кнопок */
+.btn-disabled {
+  background: #666;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Плейсхолдер для изображений */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 400px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .modal-content {
+    padding: 20px 16px;
+  }
+  
+  .nav button {
+    min-width: 50px;
+    height: 50px;
+    padding: 8px;
+  }
+  
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .nav-text {
+    font-size: 10px;
+  }
+}
+
+/* Стили для анимаций */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+/* Стили для скелетона */
+@keyframes loading {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Улучшенные стили для модальных окон */
+.modal {
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Стили для скроллбара */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Стили для иконок SVG */
+svg {
+  vertical-align: middle;
+}
+
+/* Стили для форм (для будущих компонентов) */
+input, textarea, select {
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  width: 100%;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #666;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #666;
+}
+
+/* Стили для уведомлений */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #10b981;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  z-index: 10000;
+  animation: slideDown 0.3s ease;
+}
+
+.notification.error {
+  background: #ef4444;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Стили для встреч */
+.meeting-status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.event-card.completed {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.event-card.completed:hover {
+  transform: none;
+}
+
+/* Стили для формы создания встречи */
+input, textarea, select {
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #666;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #666;
+}
+
+/* Анимация для модальных окон */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
