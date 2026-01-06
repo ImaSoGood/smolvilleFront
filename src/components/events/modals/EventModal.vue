@@ -95,7 +95,7 @@ watch(() => props.event.id, async (newId) => {
 async function loadEventData() {
   try {
     // Загружаем количество участников
-    attendeesCount.value = await eventStore.getEventAttendeesCount(props.event.id)
+    attendeesCount.value = props.event.attendees_count || 0
     
     // Проверяем участие пользователя
     isUserAttending.value = await eventStore.checkUserAttendance(props.event.id)

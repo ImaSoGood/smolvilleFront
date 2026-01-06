@@ -194,21 +194,6 @@ export const useEventStore = defineStore('events', () => {
     }
   }
   
-  async function getEventAttendeesCount(eventId) {
-    try {
-      const response = await api.getEventAttendeesCount(eventId)
-      
-      if (response) {
-        console.log('ОТВЕТ: ', response)
-        return response.count || 0
-      }
-      return 0
-    } catch (error) {
-      console.error('Ошибка загрузки участников:', error)
-      return 0
-    }
-  }
-  
   function formatDate(dateStr) {
     if (!dateStr) return 'Без даты'
     const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
@@ -256,7 +241,6 @@ export const useEventStore = defineStore('events', () => {
     attendEvent,
     unattendEvent,
     checkUserAttendance,
-    getEventAttendeesCount,
     formatDate,
     getAttendeesBadgeStyle
   }

@@ -57,10 +57,6 @@ export default {
   async checkUserAttendance(eventId, userId) {
     return api.get(`/api/v1/event/check/${eventId}/${userId}`)
   },
-  
-  async getEventAttendeesCount(eventId) {
-    return api.get(`/api/v1/event/visitCount/${eventId}`)
-  },
 
   /*
   События
