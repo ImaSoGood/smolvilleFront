@@ -46,7 +46,6 @@ export const useEventStore = defineStore('events', () => {
       await checkServerStatus()
       
       if (!serverAvailable.value) {
-        await loadMockEvents()
         return
       }
       
@@ -65,52 +64,21 @@ export const useEventStore = defineStore('events', () => {
         }))
       } else {
         console.warn('Некорректный формат ответа:', response)
-        // Не выбрасываем ошибку, используем моковые данные
-        await loadMockEvents()
       }
       
     } catch (err) {
       console.error('Ошибка в fetchEvents:', err)
       error.value = 'Не удалось загрузить события'
-      // Не выбрасываем ошибку дальше, используем моковые данные
-      await loadMockEvents()
     } finally {
       loading.value = false
     }
-  }
-  
-  async function loadMockEvents() {
-    events.value = [
-      {
-        id: 1,
-        title: 'Горячий Лёд 2026 - 1 Этап',
-        type: 'Спорт',
-        date: '2026-01-18T09:00:00.000000Z',
-        location: 'с. Охотское, Карьер «Охотский»',
-        image_url: 'https://hundredtries.ru/smolville/server/images/1.jpeg',
-        description: 'Открытие серии Горячий Лёд',
-        map_link: 'https://2gis.ru/yuzhnosakhalinsk/geo/70030076320940240',
-        attendees_count: 43,
-      },
-      {
-        id: 2,
-        title: 'Горячий Лёд 2026 - 2 Этап',
-        type: 'Спорт',
-        date: '2026-02-01T09:00:00.000000Z',
-        location: 'с. Охотское, Карьер «Охотский»',
-        image_url: 'https://hundredtries.ru/smolville/server/images/2.jpeg',
-        description: 'Продолжение гоночных разборок на льду',
-        map_link: 'https://2gis.ru/yuzhnosakhalinsk/geo/70030076320940240',
-        attendees_count: 14
-      }
-    ]
   }
 
   async function checkServerStatus() {
     try {
       const status = await api.getStatus()
       
-      if (status.available === 0) {
+      if (status.availible === false) {
         serverAvailable.value = false
         serverStatusMessage.value = status.status || 'Технические работы'
       } else {

@@ -231,6 +231,8 @@ async function handleSubmit() {
       telegramStore.showNotification('Встреча успешно создана!')
       emit('created', result.meeting)
       close()
+    } else {
+      telegramStore.showNotification(result.message)
     }
   } catch (error) {
     console.error('Ошибка создания встречи:', error)

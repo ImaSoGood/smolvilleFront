@@ -96,14 +96,52 @@ export default {
     }
   },
   
-  async attendMeeting(meetingId, userId) {
+  async attendMeeting(meetingToken, userId) {
     try {
       return await api.post('/api/v1/meeting/attend', {
-        meeting_id: meetingId,
+        meet_token: meetingToken,
         user_id: userId
       })
     } catch (error) {
       console.error('Failed to attend meeting:', error)
+      throw error
+    }
+  },
+
+  async unattendMeeting(meetingToken, userId) {
+    try {
+      return await api.post('/api/v1/meeting/unattend', {
+        meet_token: meetingToken,
+        user_id: userId
+      })
+    } catch (error) {
+      console.error('Failed to unattend meeting:', error)
+      throw error
+    }
+  },
+
+  async checkMeetingAttendance(meetingToken, userId) {
+    try {
+      return await api.get(`/api/v1/meeting/checkAttendance`, {
+        params: {
+          meet_token: meetingToken,
+          user_id: userId
+        }
+      })
+    } catch (error) {
+      console.error('Failed to check meeting attendance:', error)
+      throw error
+    }
+  },
+
+  async addMeetView(meetingToken, userId) {
+    try {
+      return await api.post('/api/v1/meeting/watchMeet', {
+        meet_token: meetingToken,
+        user_id: userId
+      })
+    } catch (error) {
+      console.error('Failed to add meet view:', error)
       throw error
     }
   },

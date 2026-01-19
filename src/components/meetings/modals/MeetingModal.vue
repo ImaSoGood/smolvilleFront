@@ -50,10 +50,17 @@
           <span v-else>{{ attendButtonText }}</span>
         </button>
       </div>
-      
-      <div class="modal-attendees">
+      <div class="modal-stats">
         <span class="attendees-text">
           Идут: <span class="attendees-count">{{ meeting.attendees_count || 0 }}</span> человек
+        </span>
+        <span class="views-text">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#888"
+            style="vertical-align: middle; margin-right: 4px;">
+            <path
+              d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+          </svg>
+          {{ meeting.view_count || 0 }}
         </span>
       </div>
     </div>
@@ -64,6 +71,26 @@
 import { defineProps, defineEmits, ref, computed } from 'vue'
 import { useMeetingStore } from '@/stores/meetingStore'
 import { useTelegramStore } from '@/stores/telegramStore'
+import { onMounted } from 'vue'
+
+onMounted(async () => {
+  if (props.meeting.meet_token) {
+    // Отправляем запрос об увеличении просмотров
+    await meetingStore.addMeetView(props.meeting.meet_token)
+    
+    // Загружаем статус участия пользователя
+    await loadUserAttendance()
+  }
+})
+
+async function loadUserAttendance() {
+  try {
+    isUserAttending.value = await meetingStore.checkUserAttendance(props.meeting.meet_token)
+    attendeesCount.value = props.meeting.attendees_count || 0 // ← ДОБАВЬ
+  } catch (error) {
+    console.error('Ошибка проверки участия:', error)
+  }
+}
 
 const props = defineProps({
   meeting: {
@@ -82,6 +109,9 @@ const meetingStore = useMeetingStore()
 const telegramStore = useTelegramStore()
 
 const isProcessing = ref(false)
+const isUserAttending = ref(false) // ← ДОБАВЬ
+const attendeesCount = ref(0) // ← ДОБАВЬ
+const isSubmitting = ref(false) // ← ДОБАВЬ если используется
 
 const isCompleted = computed(() => {
   return props.meeting.status === false
@@ -120,64 +150,40 @@ function openMap() {
   }
 }
 
-async function handleSubmit() {
-  if (isSubmitting.value) return
-  
-  isSubmitting.value = true
-  
-  try {
-    // Проверяем обязательные поля
-    if (!form.value.title.trim()) {
-      throw new Error('Введите название встречи')
-    }
-    if (!form.value.description.trim()) {
-      throw new Error('Введите описание встречи')
-    }
-    if (!form.value.date) {
-      throw new Error('Выберите дату и время')
-    }
-    if (!form.value.type) {
-      throw new Error('Выберите тип встречи')
-    }
-    if (!form.value.location.trim()) {
-      throw new Error('Введите место проведения')
-    }
-    
-    const result = await meetingStore.createMeeting(form.value)
-    
-    if (result.success) {
-      telegramStore.showNotification('Встреча успешно создана!')
-      emit('created', result.data)
-      close()
-    } else {
-      throw new Error(result.message || ' встречи')
-    }
-  } catch (error) {
-    console.error('Ошибка создания встречи:', error)
-    telegramStore.showNotification(error.message, 'error')
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
 async function handleAttendClick() {
   if (isProcessing.value || isCompleted.value) return
   
   isProcessing.value = true
   
   try {
-    // Используем meet_token вместо id
-    const success = await meetingStore.attendMeeting(props.meeting.meet_token)
-    
-    if (success) {
-      // Закрываем модалку через 1.5 секунды
-      setTimeout(() => {
-        close()
-      }, 1500)
+    if (isUserAttending.value) {
+      // Отмена участия
+      const confirm = window.confirm('Вы действительно не пойдете на встречу?')
+      if (!confirm) {
+        isProcessing.value = false
+        return
+      }
+      
+      const success = await meetingStore.unattendMeeting(props.meeting.meet_token)
+      if (success) {
+        isUserAttending.value = false
+        attendeesCount.value = Math.max(0, attendeesCount.value - 1)
+        telegramStore.showNotification('Вы вышли из встречи')
+      }
+    } else {
+      // Запись на участие
+      const success = await meetingStore.attendMeeting(props.meeting.meet_token)
+      if (success) {
+        isUserAttending.value = true
+        attendeesCount.value += 1
+        telegramStore.showNotification('Вы присоединились к встрече!')
+      } else {
+        telegramStore.showNotification('Вы уже записаны на эту встречу!', 'warning')
+      }
     }
   } catch (error) {
-    console.error('Ошибка присоединения к встрече:', error)
-    telegramStore.showNotification('Ошибка при присоединении', 'error')
+    console.error('Ошибка обработки участия:', error)
+    telegramStore.showNotification('Ошибка при обработке запроса', 'error')
   } finally {
     isProcessing.value = false
   }
@@ -203,5 +209,31 @@ async function handleAttendClick() {
   background: #666;
   color: #999;
   cursor: not-allowed;
+}
+
+.modal-stats {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.attendees-text {
+  color: #888;
+  font-size: 14px;
+}
+
+.attendees-count {
+  color: #00ffcc;
+  font-weight: 600;
+}
+
+.views-text {
+  color: #888;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
 }
 </style>

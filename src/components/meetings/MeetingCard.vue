@@ -19,9 +19,9 @@
       <div 
         class="attendees-badge" 
         :style="attendeesBadgeStyle"
-        :class="{ pulse: meeting.attendees_count > 0 }"
+        :class="{ pulse: Number(meeting.attendees_count ?? 0) > 0 }"
       >
-        {{ meeting.attendees_count }} идут
+        {{ Number(meeting.attendees_count ?? 0) }} идут
       </div>
       
       <!-- Бейдж статуса -->
@@ -79,7 +79,7 @@ const isCompleted = computed(() => {
 })
 
 const attendeesBadgeStyle = computed(() => {
-  const count = props.meeting.visit_count || 0 // Используем visit_count
+  const count = Number(props.meeting.attendees_count ?? 0) // Используем attendees_count
   return meetingStore.getAttendeesBadgeStyle(count)
 })
 

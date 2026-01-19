@@ -68,8 +68,6 @@ export const useMeetingStore = defineStore('meetings', () => {
     } catch (err) {
       console.error('Ошибка загрузки встреч:', err)
       error.value = 'Не удалось загрузить встречи'
-      // Используем моковые данные при ошибке
-      await loadMockMeetings()
     } finally {
       loading.value = false
     }
@@ -100,35 +98,12 @@ export const useMeetingStore = defineStore('meetings', () => {
         status: meeting.status !== false, // true = активна, false = завершена
         created_at: meeting.created_at,
         updated_at: meeting.updated_at,
-        attendees_count: meeting.visit_count || 0,
-        visit_count: meeting.visit_count || 0,
+        attendees_count: meeting.attendees_count ?? 0,
         view_count: meeting.view_count || 0,
         creator: meeting.creator,
         created_by: meeting.user_token_id || 'unknown'
       }
     })
-  }
-  
-  async function loadMockMeetings() {
-    console.log('Загружаем моковые данные встреч')
-    meetings.value = [
-      {
-        id: 'mock_1',
-        meet_token: 'mock_1',
-        title: 'Тестовая встреча 1',
-        description: 'Тестовое описание встречи',
-        date: new Date(Date.now() + 86400000).toISOString(),
-        type: 'Спорт',
-        location: 'Тестовая локация',
-        age_limit: 18,
-        map_link: null,
-        image_url: 'https://picsum.photos/400/200?random=5',
-        status: true,
-        attendees_count: 5,
-        visit_count: 5,
-        created_by: telegramStore.user?.id || 'mock_user'
-      }
-    ]
   }
   
   function selectMeeting(meeting) {
@@ -182,7 +157,7 @@ export const useMeetingStore = defineStore('meetings', () => {
         telegramStore.showNotification('Встреча успешно создана!')
         return { success: true, data: response.data }
       } else {
-        throw new Error(response.message || 'Ошибка создания встречи')
+        telegramStore.showNotification(response.message)
       }
       
     } catch (error) {
@@ -197,19 +172,18 @@ export const useMeetingStore = defineStore('meetings', () => {
       const userId = telegramStore.user?.id
       if (!userId) {
         telegramStore.showNotification('Войдите в систему', 'error')
-        return false
+        //return false
       }
-      
+
       const response = await api.attendMeeting(meetingToken, userId)
-      
+
       if (response.success) {
-        // Обновляем количество участников
+        // Обновляем локальное состояние
         const meeting = meetings.value.find(m => m.meet_token === meetingToken)
         if (meeting) {
           meeting.attendees_count += 1
-          meeting.visit_count += 1
         }
-        
+
         telegramStore.showNotification('Вы присоединились к встрече!')
         return true
       } else {
@@ -219,6 +193,74 @@ export const useMeetingStore = defineStore('meetings', () => {
     } catch (error) {
       console.error('Ошибка присоединения к встрече:', error)
       telegramStore.showNotification('Ошибка при присоединении', 'error')
+      return false
+    }
+  }
+
+  async function unattendMeeting(meetingToken) {
+    try {
+      const userId = telegramStore.user?.id
+      if (!userId) {
+        telegramStore.showNotification('Войдите в систему', 'error')
+        //return false
+      }
+
+      const response = await api.unattendMeeting(meetingToken, userId)
+
+      if (response.success) {
+        // Обновляем локальное состояние
+        const meeting = meetings.value.find(m => m.meet_token === meetingToken)
+        if (meeting && meeting.attendees_count > 0) {
+          meeting.attendees_count -= 1
+        }
+
+        telegramStore.showNotification('Вы вышли из встречи')
+        return true
+      } else {
+        telegramStore.showNotification(response.message || 'Ошибка выхода', 'error')
+        return false
+      }
+    } catch (error) {
+      console.error('Ошибка выхода из встречи:', error)
+      telegramStore.showNotification('Ошибка при выходе', 'error')
+      return false
+    }
+  }
+
+  async function checkUserAttendance(meetingToken) {
+    try {
+      const userId = telegramStore.user?.id
+      if (!userId) return false
+
+      const response = await api.checkMeetingAttendance(meetingToken, userId)
+
+      if (response.success) {
+        return response.data.is_attending || false
+      }
+      return false
+    } catch (error) {
+      console.error('Ошибка проверки участия:', error)
+      return false
+    }
+  }
+
+  async function addMeetView(meetingToken) {
+    try {
+      const userId = telegramStore.user?.id
+      if (!userId) return false
+
+      // Отправляем запрос на увеличение просмотров
+      await api.addMeetView(meetingToken, userId)
+
+      // Локально увеличиваем счетчик просмотров
+      const meeting = meetings.value.find(m => m.meet_token === meetingToken)
+      if (meeting) {
+        meeting.view_count += 1
+      }
+
+      return true
+    } catch (error) {
+      console.error('Ошибка увеличения просмотров:', error)
       return false
     }
   }
@@ -297,7 +339,10 @@ export const useMeetingStore = defineStore('meetings', () => {
     openCreateModal,
     closeCreateModal,
     createMeeting,
-    attendMeeting,
+    attendMeeting,       // Добавить
+    unattendMeeting,     // Добавить
+    checkUserAttendance, // Добавить
+    addMeetView,         // Добавить
     formatDate,
     formatAgeLimit,
     getStatusBadgeStyle,
