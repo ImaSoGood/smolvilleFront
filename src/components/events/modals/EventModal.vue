@@ -121,7 +121,7 @@ function openMap() {
 
 async function handleAttendClick() {
   if (isProcessing.value) return
-  
+
   isProcessing.value = true
   
   try {

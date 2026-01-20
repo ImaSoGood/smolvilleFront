@@ -128,7 +128,7 @@ export default {
           user_id: userId
         }
       })
-      return response.data // ДОБАВЬТЕ ЭТУ СТРОКУ
+      return response 
     } catch (error) {
       console.error('Failed to check meeting attendance:', error)
       throw error
