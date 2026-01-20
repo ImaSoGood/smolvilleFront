@@ -145,6 +145,7 @@ export const useMeetingStore = defineStore('meetings', () => {
       
       // Добавляем user_id
       meetingData.append('user_id', telegramStore.user?.id || '0')
+      meetingData.append('username', telegramStore.user?.username || 'Smolville_bot')
       
       // Отправляем на сервер
       const response = await api.createMeeting(meetingData)
@@ -224,6 +225,25 @@ export const useMeetingStore = defineStore('meetings', () => {
       console.error('Ошибка выхода из встречи:', error)
       telegramStore.showNotification('Ошибка при выходе', 'error')
       return false
+    }
+  }
+
+  async function getMeetingCreator(meetingToken) {
+    try {
+      const response = await api.getMeetingCreator(meetingToken)
+      console.log('Ответ getMeetingCreator:', response)
+
+      // Ожидаем ответ в формате: { "username": "Smolville_bot" }
+      if (response && response.username) {
+        return response.username
+      }
+
+      console.warn('Некорректный формат ответа:', response)
+      return null
+
+    } catch (error) {
+      console.error('Ошибка получения создателя встречи:', error)
+      return null
     }
   }
 
@@ -342,13 +362,15 @@ export const useMeetingStore = defineStore('meetings', () => {
     openCreateModal,
     closeCreateModal,
     createMeeting,
-    attendMeeting,       // Добавить
-    unattendMeeting,     // Добавить
-    checkUserAttendance, // Добавить
-    addMeetView,         // Добавить
+    attendMeeting,       
+    unattendMeeting,     
+    checkUserAttendance, 
+    addMeetView,         
     formatDate,
     formatAgeLimit,
     getStatusBadgeStyle,
-    getAttendeesBadgeStyle
+    getAttendeesBadgeStyle,
+
+    getMeetingCreator
   }
 })

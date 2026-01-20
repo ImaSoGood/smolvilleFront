@@ -10,11 +10,27 @@
         <span>{{ meeting.location || 'Не указано' }}</span>
       </div>
       
-      <img 
-        :src="meeting.image_url || 'https://via.placeholder.com/400x200/333/666?text=Событие'" 
-        :alt="meeting.title"
-        class="modal-image"
-      >
+      <div class="modal-image-container">
+        <img 
+          :src="meeting.image_url || 'https://via.placeholder.com/400x200/333/666?text=Событие'" 
+          :alt="meeting.title"
+          class="modal-image"
+        >
+      </div>
+      
+      <div v-if="meeting.created_by || meeting.creator" class="modal-creator">
+        <button 
+          class="creator-btn"
+          @click="openCreatorProfile"
+          :disabled="isLoadingCreator"
+        >
+          <span class="creator-icon">👤</span>
+          <span class="creator-text">
+            <span v-if="isLoadingCreator">Загрузка...</span>
+            <span v-else>Профиль организатора</span>
+          </span>
+        </button>
+      </div>
       
       <p class="modal-description">{{ meeting.description || 'Описание отсутствует' }}</p>
       
@@ -43,10 +59,8 @@
           Идут: <span class="attendees-count">{{ attendeesCount }}</span> человек
         </span>
         <span class="views-text">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#888"
-            style="vertical-align: middle; margin-right: 4px;">
-            <path
-              d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#888" style="vertical-align: middle; margin-right: 4px;">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
           </svg>
           {{ viewCount }}
         </span>
@@ -81,6 +95,7 @@ const isProcessing = ref(false)
 const isUserAttending = ref(false)
 const attendeesCount = ref(0)
 const viewCount = ref(0)
+const isLoadingCreator = ref(false) 
 
 const attendButtonText = computed(() => {
   return isUserAttending.value ? 'Не пойду' : 'Я пойду!'
@@ -103,6 +118,36 @@ watch(() => props.meeting?.meet_token, async (newToken) => {
     await loadMeetingData()
   }
 })
+
+async function openCreatorProfile() {
+  if (!props.meeting?.meet_token || isLoadingCreator.value) return
+  
+  isLoadingCreator.value = true
+  
+  try {
+    console.log('Запрашиваем профиль организатора...')
+    
+    // Получаем username через meetingStore
+    const username = await meetingStore.getMeetingCreator(props.meeting.meet_token)
+    
+    if (username) {
+      // Очищаем @ если есть
+      const cleanUsername = username.replace('@', '')
+      const telegramUrl = `https://t.me/${cleanUsername}`
+      
+      console.log('Открываем профиль:', telegramUrl)
+      telegramStore.openLink(telegramUrl)
+    } else {
+      telegramStore.showNotification('Профиль организатора не найден', 'warning')
+    }
+    
+  } catch (error) {
+    console.error('Ошибка загрузки профиля организатора:', error)
+    telegramStore.showNotification('Ошибка при загрузке профиля', 'error')
+  } finally {
+    isLoadingCreator.value = false
+  }
+}
 
 async function loadMeetingData() {
   try {
@@ -317,5 +362,48 @@ async function handleAttendClick() {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.modal-creator {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.creator-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #00a8ff;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.creator-btn:hover:not(:disabled) {
+  background: rgba(0, 168, 255, 0.1);
+  color: #4dc1ff;
+}
+
+.creator-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.creator-icon {
+  font-size: 16px;
+}
+
+.creator-text {
+  font-size: 14px;
 }
 </style>

@@ -147,6 +147,16 @@ export default {
     }
   },
 
+  async getMeetingCreator(meetingToken) {
+    try {
+      const response = await api.get(`/api/v1/meeting/profile/${meetingToken}`)
+      return response
+    } catch (error) {
+      console.error('Failed to get meeting creator:', error)
+      throw error
+    }
+  },
+
   /*
   Встречи
   Встречи
