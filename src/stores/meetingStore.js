@@ -229,15 +229,18 @@ export const useMeetingStore = defineStore('meetings', () => {
 
   async function checkUserAttendance(meetingToken) {
     try {
-      const userId = telegramStore.user?.id
-      if (!userId) return false
+      const userId = telegramStore.user?.id || '0'
+
+      console.log('checkUserAttendance запрос:', { meetingToken, userId })
 
       const response = await api.checkMeetingAttendance(meetingToken, userId)
+      console.log('checkUserAttendance ответ:', response)
 
-      if (response.success) {
-        return response.data.is_attending || false
+      // Если ответ уже содержит is_attending напрямую
+      if (typeof response.is_attending !== 'undefined') {
+        return response.is_attending
       }
-      return false
+
     } catch (error) {
       console.error('Ошибка проверки участия:', error)
       return false

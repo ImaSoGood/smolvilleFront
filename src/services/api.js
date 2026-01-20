@@ -122,12 +122,13 @@ export default {
 
   async checkMeetingAttendance(meetingToken, userId) {
     try {
-      return await api.get(`/api/v1/meeting/checkAttendance`, {
+      const response = await api.get(`/api/v1/meeting/checkAttendance`, {
         params: {
           meet_token: meetingToken,
           user_id: userId
         }
       })
+      return response.data // ДОБАВЬТЕ ЭТУ СТРОКУ
     } catch (error) {
       console.error('Failed to check meeting attendance:', error)
       throw error

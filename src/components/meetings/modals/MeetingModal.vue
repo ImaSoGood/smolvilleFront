@@ -1,4 +1,3 @@
-<!-- src/components/meetings/modals/MeetingModal.vue -->
 <template>
   <div class="modal" :class="{ active: isOpen }" @click.self="close">
     <div class="modal-content">
@@ -8,22 +7,14 @@
       
       <div class="modal-subtitle">
         <span>{{ formatDate(meeting.date) }}</span> • 
-        <span>{{ meeting.location || 'Место не указано' }}</span> • 
-        <span>{{ formatAgeLimit(meeting.age_limit) }}</span>
+        <span>{{ meeting.location || 'Не указано' }}</span>
       </div>
       
       <img 
-        :src="meeting.image_url || 'https://via.placeholder.com/400x200/333/666?text=Встреча'" 
+        :src="meeting.image_url || 'https://via.placeholder.com/400x200/333/666?text=Событие'" 
         :alt="meeting.title"
         class="modal-image"
       >
-      
-      <div class="modal-badges">
-        <span class="event-tag">{{ meeting.type || 'ВСТРЕЧА' }}</span>
-        <span class="status-badge" :style="statusBadgeStyle">
-          {{ isCompleted ? 'ЗАВЕРШЕНО' : 'АКТИВНО' }}
-        </span>
-      </div>
       
       <p class="modal-description">{{ meeting.description || 'Описание отсутствует' }}</p>
       
@@ -32,11 +23,7 @@
           v-if="meeting.map_link" 
           class="btn btn-secondary"
           @click="openMap"
-          style="display: flex; align-items: center; justify-content: center;"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" />
-          </svg>
           На карте
         </button>
         
@@ -44,23 +31,16 @@
           class="btn" 
           :class="attendButtonClass"
           @click="handleAttendClick"
-          :disabled="isProcessing || isCompleted"
+          :disabled="isProcessing"
         >
           <span v-if="isProcessing">Загрузка...</span>
           <span v-else>{{ attendButtonText }}</span>
         </button>
       </div>
-      <div class="modal-stats">
+      
+      <div class="modal-attendees">
         <span class="attendees-text">
-          Идут: <span class="attendees-count">{{ meeting.attendees_count || 0 }}</span> человек
-        </span>
-        <span class="views-text">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#888"
-            style="vertical-align: middle; margin-right: 4px;">
-            <path
-              d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-          </svg>
-          {{ meeting.view_count || 0 }}
+          Идут: <span class="attendees-count">{{ attendeesCount }}</span> человек
         </span>
       </div>
     </div>
@@ -68,29 +48,9 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, computed } from 'vue'
+import { defineProps, defineEmits, ref, computed, watch } from 'vue'
 import { useMeetingStore } from '@/stores/meetingStore'
 import { useTelegramStore } from '@/stores/telegramStore'
-import { onMounted } from 'vue'
-
-onMounted(async () => {
-  if (props.meeting.meet_token) {
-    // Отправляем запрос об увеличении просмотров
-    await meetingStore.addMeetView(props.meeting.meet_token)
-    
-    // Загружаем статус участия пользователя
-    await loadUserAttendance()
-  }
-})
-
-async function loadUserAttendance() {
-  try {
-    isUserAttending.value = await meetingStore.checkUserAttendance(props.meeting.meet_token)
-    attendeesCount.value = props.meeting.attendees_count || 0 // ← ДОБАВЬ
-  } catch (error) {
-    console.error('Ошибка проверки участия:', error)
-  }
-}
 
 const props = defineProps({
   meeting: {
@@ -109,34 +69,54 @@ const meetingStore = useMeetingStore()
 const telegramStore = useTelegramStore()
 
 const isProcessing = ref(false)
-const isUserAttending = ref(false) // ← ДОБАВЬ
-const attendeesCount = ref(0) // ← ДОБАВЬ
-const isSubmitting = ref(false) // ← ДОБАВЬ если используется
-
-const isCompleted = computed(() => {
-  return props.meeting.status === false
-})
+const isUserAttending = ref(false)
+const attendeesCount = ref(0)
 
 const attendButtonText = computed(() => {
-  if (isCompleted.value) return 'Встреча завершена'
-  return 'Я пойду!'
+  return isUserAttending.value ? 'Не пойду' : 'Я пойду!'
 })
 
 const attendButtonClass = computed(() => {
-  if (isCompleted.value) return 'btn-disabled'
-  return 'btn-primary'
+  return isUserAttending.value ? 'btn-secondary' : 'btn-primary'
 })
 
-const statusBadgeStyle = computed(() => {
-  return meetingStore.getStatusBadgeStyle(isCompleted.value)
+watch(() => props.isOpen, async (isOpen) => {
+  if (isOpen && props.meeting?.meet_token) {
+    console.log('Модалка открылась, загружаем данные...')
+    await loadMeetingData()
+  }
+}, { immediate: true }) // Добавьте immediate: true
+
+watch(() => props.meeting?.meet_token, async (newToken) => {
+  if (newToken && props.isOpen) {
+    console.log('Meeting обновился, загружаем данные...')
+    await loadMeetingData()
+  }
 })
+
+async function loadMeetingData() {
+  try {
+    // Установите attendeesCount из пропсов
+    attendeesCount.value = props.meeting.attendees_count || 0
+    
+    // Проверьте участие пользователя ТОЛЬКО если есть meet_token
+    if (props.meeting?.meet_token) {
+      const isAttending = await meetingStore.checkUserAttendance(props.meeting.meet_token)
+      isUserAttending.value = isAttending
+      console.log('Участие пользователя:', isAttending)
+    }
+    
+    // Увеличивайте счетчик просмотров ТОЛЬКО если модалка открыта и есть meet_token
+    if (props.isOpen && props.meeting?.meet_token) {
+      await meetingStore.addMeetView(props.meeting.meet_token)
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки данных встречи:', error)
+  }
+}
 
 function formatDate(dateStr) {
   return meetingStore.formatDate(dateStr)
-}
-
-function formatAgeLimit(ageLimit) {
-  return meetingStore.formatAgeLimit(ageLimit)
 }
 
 function close() {
@@ -151,34 +131,31 @@ function openMap() {
 }
 
 async function handleAttendClick() {
-  if (isProcessing.value || isCompleted.value) return
-  
+  if (isProcessing.value) return
   isProcessing.value = true
-  
   try {
     if (isUserAttending.value) {
-      // Отмена участия
-      const confirm = window.confirm('Вы действительно не пойдете на встречу?')
+      const confirm = window.confirm('Вы действительно не пойдете на мероприятие?')
       if (!confirm) {
+        console.log('isProcessing: ' + isProcessing);
         isProcessing.value = false
         return
       }
-      
       const success = await meetingStore.unattendMeeting(props.meeting.meet_token)
       if (success) {
         isUserAttending.value = false
+        console.log('isProcessing: ' + isProcessing);
         attendeesCount.value = Math.max(0, attendeesCount.value - 1)
-        telegramStore.showNotification('Вы вышли из встречи')
+        telegramStore.showNotification('Вы больше не идете на мероприятие')
       }
     } else {
-      // Запись на участие
       const success = await meetingStore.attendMeeting(props.meeting.meet_token)
       if (success) {
         isUserAttending.value = true
         attendeesCount.value += 1
-        telegramStore.showNotification('Вы присоединились к встрече!')
+        telegramStore.showNotification('Отлично! Вы идете на мероприятие!')
       } else {
-        telegramStore.showNotification('Вы уже записаны на эту встречу!', 'warning')
+        telegramStore.showNotification('Вы уже записаны на это мероприятие!', 'warning')
       }
     }
   } catch (error) {
@@ -191,33 +168,124 @@ async function handleAttendClick() {
 </script>
 
 <style scoped>
-.modal-badges {
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal.active {
   display: flex;
-  gap: 8px;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.modal-subtitle {
+  color: #888;
+  font-size: 14px;
   margin-bottom: 16px;
 }
 
-.status-badge {
-  padding: 4px 8px;
+.modal-image {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: cover;
   border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  margin-bottom: 16px;
 }
 
-.btn-disabled {
+.modal-description {
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #fff;
+  color: #000;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.btn-primary:disabled {
   background: #666;
   color: #999;
   cursor: not-allowed;
 }
 
-.modal-stats {
+.btn-secondary {
+  background: #333;
+  color: #fff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #444;
+}
+
+.modal-attendees {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .attendees-text {
@@ -228,12 +296,5 @@ async function handleAttendClick() {
 .attendees-count {
   color: #00ffcc;
   font-weight: 600;
-}
-
-.views-text {
-  color: #888;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
 }
 </style>
