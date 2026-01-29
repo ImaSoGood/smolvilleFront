@@ -145,7 +145,6 @@ async function handleAttendClick() {
       if (success) {
         isUserAttending.value = true
         attendeesCount.value += 1
-        telegramStore.showNotification('Отлично! Вы идете на мероприятие!')
       } else {
         telegramStore.showNotification('Вы уже записаны на это мероприятие!', 'warning')
       }

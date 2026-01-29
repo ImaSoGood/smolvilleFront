@@ -124,6 +124,12 @@ export const useMeetingStore = defineStore('meetings', () => {
   
   async function createMeeting(formData) {
     try {
+      const userId = telegramStore.user?.id
+      if (!userId) {
+        telegramStore.showNotification('Войдите в систему', 'error')
+        return false
+      }
+      
       console.log('Создание встречи:', formData)
       
       // Подготавливаем данные для отправки
@@ -173,7 +179,7 @@ export const useMeetingStore = defineStore('meetings', () => {
       const userId = telegramStore.user?.id
       if (!userId) {
         telegramStore.showNotification('Войдите в систему', 'error')
-        //return false
+        return false
       }
 
       const response = await api.attendMeeting(meetingToken, userId)
@@ -203,7 +209,7 @@ export const useMeetingStore = defineStore('meetings', () => {
       const userId = telegramStore.user?.id
       if (!userId) {
         telegramStore.showNotification('Войдите в систему', 'error')
-        //return false
+        return false
       }
 
       const response = await api.unattendMeeting(meetingToken, userId)

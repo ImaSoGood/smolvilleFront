@@ -177,9 +177,12 @@ function close() {
 }
 
 function openMap() {
-  if (props.meeting.map_link) {
-    telegramStore.openLink(props.meeting.map_link)
+  if (props.meeting.map_link == "Без ссылки") {
+    telegramStore.showNotification('Организатор не указал на карте(', 'error')
+    return false
   }
+
+  telegramStore.openLink(props.meeting.map_link)
 }
 
 async function handleAttendClick() {
@@ -205,7 +208,6 @@ async function handleAttendClick() {
       if (success) {
         isUserAttending.value = true
         attendeesCount.value += 1
-        telegramStore.showNotification('Отлично! Вы идете на мероприятие!')
       } else {
         telegramStore.showNotification('Вы уже записаны на это мероприятие!', 'warning')
       }

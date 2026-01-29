@@ -147,7 +147,9 @@ function openMeetingModal(meeting) {
 }
 
 function closeMeetingModal() {
+  console.log('closeMeetingModal вызвана, showMeetingModal было:', showMeetingModal.value)
   showMeetingModal.value = false
+  console.log('showMeetingModal стало:', showMeetingModal.value)
   selectedMeeting.value = null
 }
 

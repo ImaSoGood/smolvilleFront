@@ -2,18 +2,17 @@ import { defineStore } from 'pinia'
 import { ref, onMounted } from 'vue'
 
 export const useTelegramStore = defineStore('telegram', () => {
-  const tg = ref(null)
   const user = ref({ id: 0, first_name: 'Гость' })
   const isReady = ref(false)
   
   function initTelegram() {
     if (window.Telegram?.WebApp) {
-      tg.value = window.Telegram.WebApp
-      tg.value.ready()
-      tg.value.expand()
+      const tg = window.Telegram.WebApp
+      tg.ready()
+      tg.expand()
       
-      if (tg.value.initDataUnsafe?.user) {
-        user.value = tg.value.initDataUnsafe.user
+      if (tg.initDataUnsafe?.user) {
+        user.value = tg.initDataUnsafe.user
       }
       
       isReady.value = true
@@ -25,29 +24,70 @@ export const useTelegramStore = defineStore('telegram', () => {
   }
   
   function showBackButton(callback) {
-    if (tg.value) {
-      tg.value.BackButton.show()
-      tg.value.BackButton.onClick(callback)
+    if (window.Telegram?.WebApp?.BackButton) {
+      try {
+        const tg = window.Telegram.WebApp
+        tg.BackButton.show()
+        tg.BackButton.onClick(callback)
+      } catch (error) {
+        console.warn('Telegram BackButton error:', error)
+      }
     }
   }
   
   function hideBackButton() {
-    if (tg.value) {
-      tg.value.BackButton.hide()
+    if (window.Telegram?.WebApp?.BackButton) {
+      try {
+        window.Telegram.WebApp.BackButton.hide()
+      } catch (error) {
+        console.warn('Telegram BackButton hide error:', error)
+      }
     }
   }
   
   function openLink(url) {
-    if (tg.value) {
-      tg.value.openLink(url)
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openLink(url)
     } else {
       window.open(url, '_blank')
     }
   }
   
   function showNotification(message, type = 'success') {
-    // В реальном приложении можно использовать tg.HapticFeedback
-    alert(message) // временно
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp
+
+      // Тактильная обратная связь (если есть)
+      if (tg.HapticFeedback) {
+        try {
+          tg.HapticFeedback.notificationOccurred(
+            type === 'error' ? 'error' :
+              type === 'warning' ? 'warning' : 'success'
+          )
+        } catch (e) {
+          // Игнорируем ошибки haptic feedback
+        }
+      }
+
+      // Показываем всплывающее окно Telegram
+      if (tg.showPopup) {
+        try {
+          tg.showPopup({
+            title: 'Уведомление',  // Всегда "Уведомление"
+            message: message,
+            buttons: [{ type: 'ok', text: 'OK' }]
+          }, () => {
+            // Колбек после закрытия (опционально)
+          })
+          return
+        } catch (e) {
+          console.warn('Telegram popup error:', e)
+        }
+      }
+    }
+
+    // Fallback на обычный alert
+    alert(message)
   }
   
   onMounted(() => {
@@ -55,7 +95,6 @@ export const useTelegramStore = defineStore('telegram', () => {
   })
   
   return {
-    tg,
     user,
     isReady,
     initTelegram,
